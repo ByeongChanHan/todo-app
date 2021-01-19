@@ -34,16 +34,30 @@ body{
     border-bottom: 1px solid #FFFFFF;
     margin: 10px 10px;
 }
+.para{
+    width: 550px;
+    margin: 10px;
+    color:#FFFFFF;
+    font-size: 40px;
+    word-break: break-all;
+    display: flex;
+}
+.para p{
+    margin: 0 10px 0 0;
+}
+.ischeck{
+    width: 30px;
+}
+/* #todo_list:hover{
+    border-bottom: 1px solid #FFFFFF;
+} */
 .inputTagSection{
     width: 610px;
     margin: 0 auto;
 }
-.inputTagSection:hover{
-    
-}
 .submitSection{
     width: 150px;
-    margin: 0 auto;
+    margin: 15px auto;
 }
 #submitbtn{
     width: 150px;
