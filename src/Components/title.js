@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import axios from 'axios';
 import '../Stylesheets/title.css'
 import plus from '../images/plus.png'
 import trashcan from '../images/trashcan.png'
@@ -6,19 +7,75 @@ import $ from 'jquery'
 
 function Title(){
     const [Countid,SetCountid] = useState(0);
+    const [Showtodos,SetShowtodos] = useState([]);
+    const [Savetodos,SetSavetodos] = useState({listnum : 0,
+        dolist : []});
+    const _getlist = async () =>{
+        const axiosConfig = {
+            headers: {
+                "Access-Control-Allow-Origin": "*"
+            }
+        };
+        await axios.get('https://chantodo.herokuapp.com/list',axiosConfig)
+        .then(response=>{
+            var jsontext = response.data.dolist
+            var jsonlistnum = response.data.listnum
+            var outputarray = [];
+            if(jsontext===undefined){
+                return false;
+            }
+            else{
+                for(let idx=0; idx < jsontext.length; idx++){
+                    outputarray.push(jsontext[idx].paraContent)
+                }
+            }
+            SetShowtodos(outputarray)
+            console.log(Showtodos)
+            SetSavetodos({listnum : jsonlistnum,dolist : outputarray})
+            console.log(Savetodos)
+        })
+    }
+    useEffect(()=>{
+        _getlist()
+    },[])
     const checkHandler = (event) =>{
         // 어떤걸 체크했는지 정보를 가져오기 위함
-        var paraMatch = event.path[1].innerText;
+        var paraMatch = event.target.id;
         var checkBox = document.getElementById(paraMatch);
         // 라인긋기
-        var paraline = event.path[1].childNodes[1];
-        console.log(checkBox)
+        var paraline = event.target.nextSibling;
             if(checkBox.checked === true){
                 paraline.style.textDecoration = "line-through";
             }
             else{
                 paraline.style.textDecoration = "none";
             }
+    }
+    const SaveHandler = () =>{
+        var isemptyinput = document.getElementById("todo_list");
+        console.log(isemptyinput)
+        if(isemptyinput === null){
+            // post 통신
+            const requestoptions = {
+                headers: {"Content-Type": `application/json`},
+            }
+            axios.post('https://chantodo.herokuapp.com/list',JSON.stringify(Savetodos)
+            ,requestoptions)
+            .then(()=>{
+                alert("저장 성공!")
+            })
+        }
+        else{
+            alert("할 일을 작성해주세요")
+            return false;
+        }
+    }
+    const removeHandler = (event) =>{
+        var inputTagsection = document.querySelector(".inputTagSection");
+        const delresult = Savetodos.dolist.pop(event.target.previousSibling)
+        SetCountid(Countid - 1);
+        SetSavetodos({ ...Savetodos, listnum: Countid, dolist: delresult })
+        inputTagsection.removeChild(event.target.parentNode);
     }
     const _addtodo = () => {
         // div 태그 생성
@@ -52,6 +109,7 @@ function Title(){
         addtodo.addEventListener('keypress', function(event) {
             if (event.which === 13) {
                 var paraContent = event.target.value;
+                Itershowtodos(paraContent)
                 // div id 셋팅
                 divsection.setAttribute("id",Countid);
                 parastr.innerText = paraContent;
@@ -74,11 +132,22 @@ function Title(){
                 // input 탭 제거
                 tagsection.removeChild(addtodo);
                 SetCountid(Countid + 1);
+                const newList = Savetodos.dolist.concat({paraContent})
+                SetSavetodos({...Savetodos,listnum:Countid,dolist:newList})
             }
         });
-        addtrashcan.addEventListener('click',function() {
-           tagsection.removeChild(para);
+        addtrashcan.onclick = removeHandler;
+    }
+    const _Renderer = (Showtodos) =>{
+        const paralist = Showtodos.map((arr,index)=>{
+            return <Itershowtodos todo={arr}
+            idx={index}
+            key={index}
+            ischeck = {checkHandler}
+            remover = {removeHandler}
+            />
         })
+        return paralist
     }
     return(
         <section id="todos">
@@ -89,12 +158,34 @@ function Title(){
                 </button>
             </div>
             <div className="inputTagSection">
-
+                {Showtodos ? _Renderer(Showtodos):<p>loading</p>}
             </div>
             <div className="submitSection">
-                <button id="submitbtn">저장하기</button>
+                <button id="submitbtn" onClick={SaveHandler}>저장하기</button>
             </div>
         </section>
+    )
+}
+function Itershowtodos(props) {
+    const chkboxstyle={
+        zoom: 3.0
+    }
+    const imgstyle={
+        width:'45px'
+    }
+    const checker = (event) => {
+        props.ischeck(event)
+    }
+    const removelist = (event) => {
+        props.remover(event)
+    }
+    return(
+        <div id={props.idx} className="para">
+            <input type="checkbox" onClick={checker} style={chkboxstyle} id={props.todo}></input>
+            <p className={props.todo}>{props.todo}</p>
+            <img src={trashcan} onClick={removelist} alt="trash_can_img" id={props.idx}
+            style={imgstyle}></img>
+        </div>
     )
 }
 export default Title;

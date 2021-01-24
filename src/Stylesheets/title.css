@@ -48,9 +48,6 @@ body{
 .ischeck{
     width: 30px;
 }
-/* #todo_list:hover{
-    border-bottom: 1px solid #FFFFFF;
-} */
 .inputTagSection{
     width: 610px;
     margin: 0 auto;
@@ -67,5 +64,4 @@ body{
     background-color: transparent;
     border: 2px solid #FFFFFF;
     border-radius: 10px;
-    opacity: 0;
 }
